@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗑️ Smart Bin - Waste Disposal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .waste-form {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            display: none;
+            background: #e8f5e8;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #27ae60;
+        }
+
+        .qr-code {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .qr-code img {
+            max-width: 200px;
+            height: auto;
+        }
+
+        .transaction-details {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .transaction-details h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .points-earned {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .nav-links a {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: #5a6fd8;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ffe6e6;
+            color: #d63031;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #d63031;
+            display: none;
+        }
+
+        /* New styles for QR data section */
+        .qr-data-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #ecf0f1;
+        }
+
+        .qr-data-display {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 10px;
+        }
+
+        .qr-data-input {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            color: #34495e;
+            padding-right: 10px;
+        }
+
+        .qr-data-input:focus {
+            outline: none;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗑️ Smart Bin</h1>
+            <p>Dispose waste responsibly and earn rewards!</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Waste Disposal Form -->
+            <div id="wasteForm" class="waste-form">
+                <h2 style="margin-bottom: 20px; color: #2c3e50;">♻️ Dispose Waste</h2>
+                <div class="form-group">
+                    <label for="wasteType">Waste Type:</label>
+                    <select id="wasteType" required>
+                        <option value="">Select waste type...</option>
+                        <option value="plastic">♻️ Plastic (5 points/kg)</option>
+                        <option value="metal">🔩 Metal (10 points/kg)</option>
+                        <option value="organic">🌱 Organic (2 points/kg)</option>
+                        <option value="paper">📄 Paper (3 points/kg)</option>
+                        <option value="glass">🥃 Glass (7 points/kg)</option>
+                        <option value="electronic">💻 Electronic (15 points/kg)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="weight">Weight (kg):</label>
+                    <input type="number" id="weight" step="0.1" min="0.1" required placeholder="Enter weight in kilograms">
+                </div>
+                <button onclick="disposeWaste()" class="submit-btn">🚀 Dispose Waste</button>
+            </div>
+
+            <!-- Loading Section -->
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Processing your waste disposal...</p>
+            </div>
+
+            <!-- Error Section -->
+            <div id="error" class="error"></div>
+
+            <!-- Result Section -->
+            <div id="resultSection" class="result-section">
+                <h2 style="color: #27ae60; margin-bottom: 20px;">✅ Waste Disposed Successfully!</h2>
+                
+                <div class="points-earned">
+                    <span id="pointsEarned">0</span> Points Earned! 🎉
+                </div>
+
+                <div class="transaction-details">
+                    <h3>📋 Transaction Details</h3>
+                    <div class="detail-row">
+                        <span class="detail-label">Transaction ID:</span>
+                        <span class="detail-value" id="transactionId">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Waste Type:</span>
+                        <span class="detail-value" id="resultWasteType">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Weight:</span>
+                        <span class="detail-value" id="resultWeight">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Timestamp:</span>
+                        <span class="detail-value" id="resultTimestamp">-</span>
+                    </div>
+                </div>
+
+                <div class="qr-code">
+                    <h3>📱 Scan QR Code to Claim Points</h3>
+                    <div id="qrCodeImage"></div>
+                    
+                    <!-- QR Data String for Easy Copying -->
+                    <div class="qr-data-section">
+                        <h4>📋 QR Code Data (Copy this to User App)</h4>
+                        <div class="qr-data-display">
+                            <input type="text" id="qrDataString" readonly class="qr-data-input">
+                            <button onclick="copyQRData()" class="copy-btn">📋 Copy</button>
+                        </div>
+                        <p style="margin-top: 10px; color: #7f8c8d; font-size: 14px;">
+                            Copy the data above and paste it in the User App's QR Scanner tab
+                        </p>
+                    </div>
+                    
+                    <p style="margin-top: 15px; color: #7f8c8d;">
+                        Use the User App to scan this QR code and add points to your wallet
+                    </p>
+                </div>
+
+                <div class="nav-links">
+                    <a href="../index.html">🏠 Back to Home</a>
+                    <a href="monitor.html">📊 View Real-time Monitor</a>
+                    <a href="../user/index.html">👤 Go to User App</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001';
+
+        // Dispose waste
+        async function disposeWaste() {
+            const wasteType = document.getElementById('wasteType').value;
+            const weight = document.getElementById('weight').value;
+
+            if (!wasteType || !weight) {
+                showError('Please select waste type and enter weight');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('wasteForm').style.display = 'none';
+            showError('');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/dispose-waste`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        wasteType,
+                        weight: parseFloat(weight)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResult(data);
+                } else {
+                    showError(data.error || 'Waste disposal failed');
+                    document.getElementById('wasteForm').style.display = 'block';
+                }
+            } catch (error) {
+                showError('Connection error. Please try again.');
+                document.getElementById('wasteForm').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Display result
+        function displayResult(data) {
+            const { transaction, qrCode, qrData } = data;
+
+            document.getElementById('pointsEarned').textContent = transaction.points;
+            document.getElementById('transactionId').textContent = transaction.id;
+            document.getElementById('resultWasteType').textContent = transaction.wasteType;
+            document.getElementById('resultWeight').textContent = transaction.weight + ' kg';
+            document.getElementById('resultTimestamp').textContent = new Date(transaction.timestamp).toLocaleString();
+
+            // Display QR code
+            document.getElementById('qrCodeImage').innerHTML = `<img src="${qrCode}" alt="QR Code">`;
+
+            // Set QR data string for copying
+            document.getElementById('qrDataString').value = qrData;
+
+            document.getElementById('resultSection').style.display = 'block';
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('wasteForm').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('wasteType').value = '';
+            document.getElementById('weight').value = '';
+        }
+
+        // Show error
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            if (message) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            } else {
+                errorDiv.style.display = 'none';
+            }
+        }
+
+        // Function to copy QR data
+        function copyQRData() {
+            const qrDataString = document.getElementById('qrDataString').value;
+            navigator.clipboard.writeText(qrDataString).then(() => {
+                alert('QR Code Data copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy QR data:', err);
+                showError('Failed to copy QR data. Please try manually.');
+            });
+        }
+    </script>
+</body>
+</html>

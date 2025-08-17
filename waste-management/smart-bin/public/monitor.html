@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Smart Bin - Real-time Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .waste-flow-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .waste-types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .waste-type-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .waste-type-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .waste-type-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .stat-label-small {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+
+        .transactions-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .transactions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .transactions-table th,
+        .transactions-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .transactions-table th {
+            background: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .transactions-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.9em;
+        }
+
+        .status-claimed {
+            background: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.9em;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .nav-links a {
+            display: inline-block;
+            margin: 0 10px;
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: #5a6fd8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .auto-refresh {
+            text-align: center;
+            margin: 20px 0;
+            color: #7f8c8d;
+        }
+
+        .auto-refresh input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Smart Bin Real-time Monitor</h1>
+            <p>Live tracking of waste disposal and environmental impact</p>
+        </div>
+
+        <button onclick="refreshData()" class="refresh-btn">🔄 Refresh Data</button>
+
+        <div class="auto-refresh">
+            <input type="checkbox" id="autoRefresh" checked>
+            <label for="autoRefresh">Auto-refresh every 5 seconds</label>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTransactions">0</div>
+                <div class="stat-label">Total Transactions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalWaste">0</div>
+                <div class="stat-label">Total Waste (kg)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalPoints">0</div>
+                <div class="stat-label">Total Points Generated</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="activeUsers">0</div>
+                <div class="stat-label">Active Users</div>
+            </div>
+        </div>
+
+        <!-- Waste Flow by Type -->
+        <div class="waste-flow-section">
+            <h2 class="section-title">♻️ Waste Flow by Type</h2>
+            <div class="waste-types-grid" id="wasteTypesGrid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading waste flow data...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="transactions-section">
+            <h2 class="section-title">📋 Recent Transactions</h2>
+            <table class="transactions-table">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>User</th>
+                        <th>Waste Type</th>
+                        <th>Weight (kg)</th>
+                        <th>Points</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionsTable">
+                    <tr>
+                        <td colspan="7" class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading transactions...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="nav-links">
+            <a href="../index.html">🏠 Back to Home</a>
+            <a href="index.html">🗑️ Back to Smart Bin</a>
+            <a href="../user/index.html">👤 Go to User App</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001';
+        let autoRefreshInterval;
+
+        // Initialize page
+        window.onload = function() {
+            refreshData();
+            setupAutoRefresh();
+        };
+
+        // Setup auto-refresh
+        function setupAutoRefresh() {
+            const autoRefreshCheckbox = document.getElementById('autoRefresh');
+            
+            autoRefreshCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    startAutoRefresh();
+                } else {
+                    stopAutoRefresh();
+                }
+            });
+
+            if (autoRefreshCheckbox.checked) {
+                startAutoRefresh();
+            }
+        }
+
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(refreshData, 5000);
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+        }
+
+        // Refresh all data
+        async function refreshData() {
+            try {
+                await Promise.all([
+                    loadWasteFlow(),
+                    loadTransactions()
+                ]);
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+            }
+        }
+
+        // Load waste flow data
+        async function loadWasteFlow() {
+            try {
+                const response = await fetch(`${API_BASE}/api/waste-flow`);
+                const data = await response.json();
+
+                if (data.success) {
+                    updateSummaryStats(data.summary);
+                    updateWasteFlowChart(data.flowData);
+                }
+            } catch (error) {
+                console.error('Error loading waste flow:', error);
+            }
+        }
+
+        // Load transactions
+        async function loadTransactions() {
+            try {
+                const response = await fetch(`${API_BASE}/api/transactions`);
+                const data = await response.json();
+
+                if (data.success) {
+                    updateTransactionsTable(data.transactions);
+                }
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+            }
+        }
+
+        // Update summary statistics
+        function updateSummaryStats(summary) {
+            document.getElementById('totalTransactions').textContent = summary.totalTransactions;
+            document.getElementById('totalWaste').textContent = summary.totalWasteDisposed.toFixed(1);
+            document.getElementById('totalPoints').textContent = summary.totalPointsGenerated;
+            document.getElementById('activeUsers').textContent = summary.totalTransactions > 0 ? 
+                Math.min(summary.totalTransactions, 10) : 0; // Demo: show up to 10 active users
+        }
+
+        // Update waste flow chart
+        function updateWasteFlowChart(flowData) {
+            const grid = document.getElementById('wasteTypesGrid');
+            grid.innerHTML = '';
+
+            if (Object.keys(flowData).length === 0) {
+                grid.innerHTML = '<div class="loading">No waste data available yet</div>';
+                return;
+            }
+
+            Object.entries(flowData).forEach(([wasteType, stats]) => {
+                const card = document.createElement('div');
+                card.className = 'waste-type-card';
+                
+                const emoji = getWasteTypeEmoji(wasteType);
+                
+                card.innerHTML = `
+                    <div class="waste-type-name">${emoji} ${wasteType.charAt(0).toUpperCase() + wasteType.slice(1)}</div>
+                    <div class="waste-type-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.count}</div>
+                            <div class="stat-label-small">Count</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.totalWeight.toFixed(1)}</div>
+                            <div class="stat-label-small">kg</div>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // Update transactions table
+        function updateTransactionsTable(transactions) {
+            const tbody = document.getElementById('transactionsTable');
+            
+            if (transactions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">No transactions yet</td></tr>';
+                return;
+            }
+
+            // Sort by timestamp (newest first)
+            const sortedTransactions = transactions.sort((a, b) => 
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+
+            // Show only last 20 transactions
+            const recentTransactions = sortedTransactions.slice(0, 20);
+
+            tbody.innerHTML = recentTransactions.map(t => `
+                <tr>
+                    <td><code>${t.id}</code></td>
+                    <td>${t.userId}</td>
+                    <td>${getWasteTypeEmoji(t.wasteType)} ${t.wasteType}</td>
+                    <td>${t.weight} kg</td>
+                    <td><strong>${t.points}</strong></td>
+                    <td><span class="status-${t.status}">${t.status}</span></td>
+                    <td>${new Date(t.timestamp).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Get emoji for waste type
+        function getWasteTypeEmoji(wasteType) {
+            const emojis = {
+                plastic: '♻️',
+                metal: '🔩',
+                organic: '🌱',
+                paper: '📄',
+                glass: '🥃',
+                electronic: '💻'
+            };
+            return emojis[wasteType] || '🗑️';
+        }
+    </script>
+</body>
+</html>
