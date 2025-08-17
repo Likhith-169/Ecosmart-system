@@ -19,7 +19,7 @@ python start_simple.py
 ```
 
 ### 3. Open the Web Interface
-- Open `web/index.html` in your web browser
+- Open `web/index.html` in your web browser or open `index.html` and click run on the top of the code editor (note don't run using live server)
 - OR navigate to `http://127.0.0.1:8000` if using the development server
 
 ## 🏗️ System Architecture
